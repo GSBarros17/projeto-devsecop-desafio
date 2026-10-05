@@ -69,12 +69,6 @@ jobs:
       # ❌ PASSO A IMPLEMENTAR — SAST com Semgrep
       # Dica: instale com "pip install semgrep" e rode
       #   semgrep scan --config auto --config p/xss --error src/
-      
-      #- name: 🔍 SAST - Semgrep
-      #  run: |
-      #    pip install semgrep
-      #    semgrep scan --config auto --config p/xss --error src/
-      
       - name: 🔍 SAST - Semgrep
         run: |
           docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep scan --config auto --config p/xss --error src/
