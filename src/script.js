@@ -1,32 +1,43 @@
-const API_KEY = "__API_KEY__";
-const DB_PASSWORD = "__DB_PASSWORD__";
+// Se precisar da chave de API no front-end, mantenha apenas ela
+const API_KEY = "SUA_CHAVE_AQUI"; 
 
-// Busca tarefas do "banco de dados"
+// 1. Busca tarefas do banco de dados de forma segura
 fetch('db.json')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Falha ao carregar os dados');
+        return response.json();
+    })
     .then(data => {
-        document.getElementById('db-status').innerText = data.status;
+        document.getElementById('db-status').textContent = data.status;
 
         const list = document.getElementById('task-list');
         data.itens.forEach(item => {
-            let li = document.createElement('li');
-            li.innerText = item.task;
+            const li = document.createElement('li');
+            li.textContent = item.task; // Previne XSS
             list.appendChild(li);
         });
     })
-    .catch(err => {        
-        document.getElementById('db-status').innerText =
-            'Erro interno: ' + err.stack;
+    .catch(err => {
+        // Previne vazamento de informações do sistema (Information Disclosure)
+        console.error('Erro detalhado:', err);
+        document.getElementById('db-status').textContent = 'Erro ao carregar as tarefas. Tente novamente mais tarde.';
     });
 
-// Adiciona nova tarefa na tela
+// 2. Adiciona nova tarefa evitando injeção de HTML (XSS)
 function addTask() {
     const input = document.getElementById('new-task');
     const output = document.getElementById('output');
 
-    output.innerHTML = '<li>' + input.value + '</li>';
+    const taskText = input.value.trim();
+    if (!taskText) return; // Evita adicionar tarefas vazias
 
-    console.log("Tarefa adicionada: " + input.value);
+    // Criação segura do elemento DOM
+    const li = document.createElement('li');
+    li.textContent = taskText; // Seguro contra XSS!
+    
+    output.appendChild(li);
+
+    console.log("Tarefa adicionada: " + taskText);
 
     input.value = '';
 }
