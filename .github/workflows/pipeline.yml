@@ -59,7 +59,7 @@ jobs:
       # ❌ IMPLEMENTANDO POLICY AS CODE  
       - name: 🛡️ Policy as Code Scanning (Conftest/Rego)
         run: |
-          docker run --rm -v "${{ github.workspace }}":/project -w /project openpolicyagent/conftest test Dockerfile.invalid -p policies/docker/security.rego
+          docker run --rm -v "${{ github.workspace }}":/project -w /project openpolicyagent/conftest test Dockerfile.valid -p policies/docker/security.rego
 
       # ❌ PASSO A IMPLEMENTAR — Secrets Scanning com Gitleaks
       # Dica: use a action oficial "gitleaks/gitleaks-action@v2" e passe o
