@@ -67,7 +67,7 @@ jobs:
 
       - name: 📦 Gerar SBOM da Imagem Docker com Syft
         run: |
-          docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project anchore/syft meu-app:latest -o cyclonedx-json=/project/sbom.json
+          docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project anchore/syft meu-app:${{ github.sha }} -o cyclonedx-json=/project/sbom.json
 
       - name: 🛡️ Scan de Vulnerabilidades na Imagem com Trivy
         run: |
