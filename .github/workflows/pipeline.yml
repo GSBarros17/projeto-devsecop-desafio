@@ -55,6 +55,11 @@ jobs:
           echo "Verificando arquivos..."
           ls src/
           echo "Build OK!"
+      
+      # ❌ IMPLEMENTANDO POLICY AS CODE  
+      - name: 🛡️ Policy as Code Scanning (Conftest/Rego)
+        run: |
+          conftest test Dockerfile.invalid -p policies/docker/security.rego
 
       # ❌ PASSO A IMPLEMENTAR — Secrets Scanning com Gitleaks
       # Dica: use a action oficial "gitleaks/gitleaks-action@v2" e passe o

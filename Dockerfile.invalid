@@ -1,0 +1,17 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copia as dependências e instala o servidor estático
+COPY package*.json ./
+RUN npm install -g serve
+
+# Copia os arquivos da aplicação
+COPY src/ ./src
+
+# Define usuário não-root por segurança
+USER root
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "src", "-l", "3000"]
