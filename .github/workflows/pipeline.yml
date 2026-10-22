@@ -61,6 +61,17 @@ jobs:
         run: |
           docker run --rm -v "${{ github.workspace }}":/project -w /project openpolicyagent/conftest test Dockerfile.valid -p policies/docker/security.rego
 
+      - name: 📦 Gerar SBOM com Syft
+        run: |
+          docker run --rm -v "${{ github.workspace }}":/project -w /project anchore/syft dir:. -o cyclonedx-json=sbom.json
+
+      - name: 🛡️ Scan de Vulnerabilidades no SBOM com Trivy
+        run: |
+          docker run --rm -v "${{ github.workspace }}":/project -w /project aquasec/trivy sbom \
+            --severity MEDIUM,HIGH,CRITICAL \
+            --exit-code 1 \
+            sbom.json
+
       # ❌ PASSO A IMPLEMENTAR — Secrets Scanning com Gitleaks
       # Dica: use a action oficial "gitleaks/gitleaks-action@v2" e passe o
       - name: 🔑 Secrets Scanning
