@@ -12,4 +12,5 @@ deny contains msg if {
 tem_usuario_nao_root if {
     input[i].Cmd == "user"
     input[i].Value[0] != "root"
+    input[i].Value[0] != "0"
 }
