@@ -63,7 +63,7 @@ jobs:
 
       - name: 🐳 Build da Imagem Docker para Análise
         run: |
-          docker build -t meu-app:latest .
+          docker build -f Dockerfile.valid -t meu-app:${{ github.sha }} .
 
       - name: 📦 Gerar SBOM da Imagem Docker com Syft
         run: |
