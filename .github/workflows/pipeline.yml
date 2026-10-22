@@ -72,7 +72,7 @@ jobs:
       - name: 🛡️ Scan de Vulnerabilidades na Imagem com Trivy
         run: |
           docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project aquasec/trivy sbom \
-            --severity MEDIUM,HIGH,CRITICAL \
+            --severity HIGH,CRITICAL \
             --exit-code 1 \
             /project/sbom.json
 

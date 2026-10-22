@@ -1,8 +1,8 @@
 FROM node:18-alpine
 WORKDIR /app
+RUN apk update && apk upgrade --no-cache
 COPY package*.json ./
-RUN npm install -g serve
-RUN apk add --no-cache bash
+RUN npm install -g serve && npm cache clean --force
 COPY src/ ./src
 USER node
 EXPOSE 3000
