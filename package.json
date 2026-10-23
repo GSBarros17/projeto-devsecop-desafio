@@ -5,15 +5,22 @@
   "dependencies": {
     "axios": "^1.20.0",
     "express": "^4.22.3",
-    "lodash": "^4.18.1",
-    "serve": "^14.2.4"
+    "http-server": "^14.1.1",
+    "lodash": "^4.18.1"
   },
   "overrides": {
-    "brace-expansion": "^2.1.5",
-    "compression": "^1.8.2",
-    "ip-address": "^10.3.1",
-    "pacote": "^21.5.1",
-    "picomatch": "^4.0.4",
-    "sigstore": "^4.1.1"
+    "serve": {
+      "compression": "1.8.2",
+      "serve-handler": {
+        "minimatch": "3.1.2",
+        "brace-expansion": "2.1.7"
+      }
+    },
+    "brace-expansion": "2.1.7",
+    "compression": "1.8.2",
+    "ip-address": "10.3.1",
+    "pacote": "21.5.1",
+    "picomatch": "4.0.4",
+    "sigstore": "4.1.1"
   }
 }
