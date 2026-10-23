@@ -1,9 +1,31 @@
-FROM node:22-alpine
+# Build stage: use npm only while installing the application dependencies.
+FROM node:22-alpine3.22 AS build
+
 WORKDIR /app
-RUN apk update && apk upgrade --no-cache
+RUN apk upgrade --no-cache
+
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
+
 COPY src/ ./src
-USER node
+
+# Runtime stage: Alpine + Node.js only; npm/npx and their bundled dependencies
+# are not copied into the final image.
+FROM alpine:3.22 AS runtime
+
+RUN apk upgrade --no-cache \
+    && apk add --no-cache libstdc++ libgcc ca-certificates \
+    && addgroup -S app \
+    && adduser -S -G app app
+
+COPY --from=build /usr/local/bin/node /usr/local/bin/node
+
+WORKDIR /app
+COPY --from=build --chown=app:app /app/node_modules ./node_modules
+COPY --from=build --chown=app:app /app/src ./src
+
+USER app
 EXPOSE 3000
-CMD ["npx", "http-serve", "-s", "src", "-l", "3000"]
+
+# Run the installed binary directly instead of invoking npx at runtime.
+CMD ["./node_modules/.bin/http-server", "src", "-p", "3000", "-s"]
