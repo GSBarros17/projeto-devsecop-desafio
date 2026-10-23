@@ -122,15 +122,10 @@ jobs:
         uses: sigstore/cosign-installer@v3
 
       # ❌ PASSO A IMPLEMENTAR — Assinatura via Cosign
-      # Este passo NÃO assina de verdade — ele gera um bundle falso, só para
-      # demonstração.
-      #
-      # Dica da assinatura real:
-      #   cosign sign-blob artifact.tar --bundle artifact.sigstore.json --yes
       - name: ✍️ Assinar artefato
         run: |
-          echo '{ "mock": "assinatura-invalida-para-demonstracao" }' > artifact.sigstore.json
-          echo "Assinatura MOCK gerada."
+          cosign sign-blob artifact.tar --bundle artifact.sigstore.json --yes
+          echo "Artefato assinado com sucesso via Sigstore Keyless."
 
       # ── Publica o artefato + bundle de assinatura para o próximo job
       - name: ⬆️ Upload do artefato assinado
@@ -164,13 +159,13 @@ jobs:
         uses: sigstore/cosign-installer@v3
 
       # ⚠️ Usa o Cosign para validar assinatura do artefato - descomentar após assinatura
-      # - name: 🔎 Verificar assinatura do artefato
-      #  run: |
-      #    cosign verify-blob artifact.tar \
-      #      --bundle artifact.sigstore.json \
-      #      --certificate-identity-regexp "^https://github.com/${{ github.repository }}/.github/workflows/.*" \
-      #      --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
-      #    echo "Assinatura válida — artefato íntegro e autêntico."
+      - name: 🔎 Verificar assinatura do artefato
+        run: |
+          cosign verify-blob artifact.tar \
+            --bundle artifact.sigstore.json \
+            --certificate-identity-regexp "^https://github.com/${{ github.repository }}/.github/workflows/.*" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+          echo "Assinatura válida — artefato íntegro e autêntico."
 
       # Descompacta o site para publicar
       - name: 📂 Extrair site verificado
