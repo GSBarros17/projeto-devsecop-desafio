@@ -68,7 +68,8 @@ jobs:
 
       - name: 📦 Gerar SBOM da Imagem Docker com Syft
         run: |
-          docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project anchore/syft docker:meu-app:${{ github.sha }} -o cyclonedx-json=/project/sbom.json
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft meu-app:${{ github.sha }} -o cyclonedx-json=sbom.json -q
 
       - name: 🔍 Inspecionar Componentes do SBOM
         run: |
