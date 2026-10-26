@@ -66,10 +66,17 @@ jobs:
         run: |
           opa test policies/docker/
 
+      - name: 🛡️ Policy as Code Scanning (Conftest/Rego)
+        run: |
+          docker run --rm -v "${{ github.workspace }}":/project -w /project openpolicyagent/conftest test Dockerfile.valid -p policies/docker/security.rego
+
+      - name: 🐳 Build da Imagem Docker para Análise
+        run: |
+          docker build -f Dockerfile.valid -t meu-app:${{ github.sha }} .
+
       - name: 📦 Gerar SBOM da Imagem Docker com Syft
         run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-          syft meu-app:${{ github.sha }} -o cyclonedx-json=sbom.json -q
+          docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project anchore/syft docker:meu-app:${{ github.sha }} -o cyclonedx-json=/project/sbom.json
 
       - name: 🔍 Inspecionar Componentes do SBOM
         run: |
