@@ -4,6 +4,6 @@ COPY package*.json ./
 RUN npm install -g serve
 RUN apk add --no-cache bash
 COPY src/ ./src
-USER root
+USER app
 EXPOSE 3000
 CMD ["serve", "-s", "src", "-l", "3000"]
