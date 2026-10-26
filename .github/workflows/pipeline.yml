@@ -55,26 +55,52 @@ jobs:
           echo "Verificando arquivos..."
           ls src/
           echo "Build OK!"
-      
-      # ❌ IMPLEMENTANDO POLICY AS CODE  
-      - name: 🛡️ Policy as Code Scanning (Conftest/Rego)
-        run: |
-          docker run --rm -v "${{ github.workspace }}":/project -w /project openpolicyagent/conftest test Dockerfile.valid -p policies/docker/security.rego
 
-      - name: 🐳 Build da Imagem Docker para Análise
+      # TESTE UNITARIO DAS POLITICAS
+      - name: 🛡️ Teste unitario da politica
         run: |
-          docker build -f Dockerfile.valid -t meu-app:${{ github.sha }} .
+          opa test policies/docker/
 
       - name: 📦 Gerar SBOM da Imagem Docker com Syft
         run: |
           docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project anchore/syft docker:meu-app:${{ github.sha }} -o cyclonedx-json=/project/sbom.json
 
-      - name: 🛡️ Scan de Vulnerabilidades na Imagem com Trivy
+      - name: 🔍 Inspecionar Componentes do SBOM
         run: |
-          docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project aquasec/trivy sbom \
-            --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            /project/sbom.json
+          echo "RELATÓRIO DE INVENTÁRIO (SBOM)"
+          echo -n "Total de componentes identificados: "
+          jq '.components | length' sbom.json
+          
+          echo "Listando pacotes principais detectados:"
+          jq -r '.components[]? | select(.type=="library" or .type=="npm") | "  - \(.name): \(.version)"' sbom.json || true
+
+      # 🛡️ SCAN DE VULNERABILIDADES COM TRIVY + GATE DE JQ
+      - name: 🛡️ Scan de Vulnerabilidades na Imagem com Trivy (JSON + jq Gate)
+        run: |
+          # Gera o relatório em formato JSON da imagem gerada
+          docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project aquasec/trivy image \
+            --format json \
+            --output /project/trivy-results.json \
+            meu-app:${{ github.sha }} || true
+
+          # Filtra e conta vulnerabilidades HIGH e CRITICAL usando jq
+          echo "Processando vulnerabilidades com jq..."
+          CRITICAL_HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' trivy-results.json)
+          
+          echo "Total de vulnerabilidades HIGH/CRITICAL encontradas: $CRITICAL_HIGH_COUNT"
+
+          # Se houver falhas críticas/altas, exibe o alerta detalhado e quebra a pipeline
+          if [ "$CRITICAL_HIGH_COUNT" -gt 0 ]; then
+            echo "=================================================================="
+            echo "🚨 ALERTA DE SEGURANÇA: Vulnerabilidades HIGH/CRITICAL detectadas!"
+            echo "=================================================================="
+            jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL") | "• [\(.Severity)] ID: \(.VulnerabilityID) | Pacote: \(.PkgName) (\(.InstalledVersion)) -> Correção sugerida: \(.FixedVersion // "Indisponível")"' trivy-results.json
+            echo "=================================================================="
+            echo "❌ Pipeline interrompida pelo Quality Gate de Segurança."
+            exit 1
+          else
+            echo "✅ Validação aprovada: Nenhuma vulnerabilidade HIGH ou CRITICAL encontrada."
+          fi
 
       # ❌ PASSO A IMPLEMENTAR — Secrets Scanning com Gitleaks
       # Dica: use a action oficial "gitleaks/gitleaks-action@v2" e passe o

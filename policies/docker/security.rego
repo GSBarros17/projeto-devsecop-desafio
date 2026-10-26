@@ -14,3 +14,10 @@ tem_usuario_nao_root if {
     input[i].Value[0] != "root"
     input[i].Value[0] != "0"
 }
+
+deny contains msg if {
+    some i
+    input[i].Cmd == "from"
+    contains(input[i].Value[0], ":latest")
+    msg := "VIOLAÇÃO DE SEGURANÇA: Não é permitido utilizar a tag ':latest'."
+}
