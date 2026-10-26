@@ -68,11 +68,11 @@ jobs:
 
       - name: 🛡️ Policy as Code Scanning (Conftest/Rego)
         run: |
-          docker run --rm -v "${{ github.workspace }}":/project -w /project openpolicyagent/conftest test Dockerfile.valid -p policies/docker/security.rego
+          docker run --rm -v "${{ github.workspace }}":/project -w /project openpolicyagent/conftest test Dockerfile.invalid -p policies/docker/security.rego
 
       - name: 🐳 Build da Imagem Docker para Análise
         run: |
-          docker build -f Dockerfile.valid -t meu-app:${{ github.sha }} .
+          docker build -f Dockerfile.invalid -t meu-app:${{ github.sha }} .
 
       - name: 📦 Gerar SBOM da Imagem Docker com Syft
         uses: anchore/sbom-action@v0
