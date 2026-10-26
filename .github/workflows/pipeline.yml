@@ -75,17 +75,35 @@ jobs:
           docker build -f Dockerfile.valid -t meu-app:${{ github.sha }} .
 
       - name: 📦 Gerar SBOM da Imagem Docker com Syft
-        run: |
-          docker run --rm -v "${{ github.workspace }}":/project -v /var/run/docker.sock:/var/run/docker.sock -w /project anchore/syft docker:meu-app:${{ github.sha }} -o cyclonedx-json=/project/sbom.json
+        uses: anchore/sbom-action@v0
+        with:
+          image: meu-app:${{ github.sha }}
+          format: cyclonedx-json
+          output-file: sbom.json
+          artifact-name: sbom-${{ github.sha }}.cdx.json
+          upload-artifact: true
 
       - name: 🔍 Inspecionar Componentes do SBOM
+        shell: bash
         run: |
+          set -euo pipefail
+
+          if [ ! -s sbom.json ]; then
+            echo "❌ Erro: SBOM não foi gerado ou está vazio."
+            exit 1
+          fi
+
           echo "RELATÓRIO DE INVENTÁRIO (SBOM)"
+
           echo -n "Total de componentes identificados: "
-          jq '.components | length' sbom.json
-          
-          echo "Listando pacotes principais detectados:"
-          jq -r '.components[]? | select(.type=="library" or .type=="npm") | "  - \(.name): \(.version)"' sbom.json || true
+          jq '(.components // []) | length' sbom.json
+
+          echo "Listando bibliotecas identificadas:"
+          jq -r '
+            (.components // [])[]
+            | select(.type == "library")
+            | "  - \(.name): \(.version // "sem versão")"
+          ' sbom.json
 
       # 🛡️ SCAN DE VULNERABILIDADES COM TRIVY + GATE DE JQ
       - name: 🛡️ Scan de Vulnerabilidades na Imagem com Trivy (JSON + jq Gate)
