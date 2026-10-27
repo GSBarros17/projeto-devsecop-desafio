@@ -215,11 +215,6 @@ jobs:
       - name: ✍️ Instalar Cosign
         uses: sigstore/cosign-installer@v3
 
-      - name: ⚠️ Simular Corrupção na Assinatura (Ataque)
-        run: |
-          echo "{"signature": "fake-signature-hash"}" > artifact.sigstore.json
-          echo "Bundle de assinatura corrompido!"
-
       # ⚠️ Usa o Cosign para validar assinatura do artefato - descomentar após assinatura
       - name: 🔎 Verificar assinatura do artefato
         run: |
