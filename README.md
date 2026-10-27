@@ -1,27 +1,5 @@
 # Desafio DevSecOps — Gerenciador de Tarefas
 
-## Sobre o Projeto
-Este repositório faz parte do desafio prático do módulo de DevSecOps da ADA Tech.
-Você receberá este projeto com vulnerabilidades propositais e uma pipeline incompleta.
-Seu objetivo é **implementar a pipeline de segurança** e **corrigir as vulnerabilidades**.
-
-## Estado atual
-A pipeline está **incompleta**. Os steps de segurança precisam ser implementados por você.
-
-## Sua missão
-1. Implementar os steps de segurança no `pipeline.yml`
-2. Fazer a pipeline **quebrar** ao detectar os problemas
-3. Corrigir as vulnerabilidades encontradas
-4. Fazer a pipeline **passar** com tudo verde ✅
-5. Documentar o funcionamento da pipeline neste README
-
-## O que implementar
-- [ ] Secrets Scanning com **Gitleaks**
-- [ ] SAST com **Semgrep**
-- [ ] SCA com **Grype**
-- [ ] Assinatura do artefato com cosign
-- [ ] Deploy com **GitHub Pages**
-
 ## Como a pipeline funciona
 
 > ### 1- Implantação Gitleaks
@@ -62,3 +40,22 @@ Com auxílio de uma LLM fiz as seguintes correções no código do `index.html` 
 
 ## URL de Produção
 > [Link do GitHub Pages após o deploy](https://gsbarros17.github.io/projeto-devsecop-desafio/).
+
+---
+
+# Desafio Police as Code — OPA, CONFTEST, SBOM, TRIVY e COSING
+
+### URL para acessar vídeo de apresentação e slide com mapa de ameaça e estudo de um caso real.
+> [Link do Google Drive](https://drive.google.com/drive/folders/1n9e-9BDwdSw01PunN9dFJIJHXl50dX71?usp=sharing).
+
+### 7- Implantação de Police as Code & Supply Chain Security
+
+Para garantir a governança e a integridade de ponta a ponta na esteira, foram implementadas as seguintes camadas de controle:
+
+- **Policy as Code (OPA + Confitest):** Utilizado para validar a conformidade dos arquivos de infraestrutura e políticas do Docker antes do build. O OPA executa regras escritas em Rego (como o bloqueio de imagens rodando como `USER root` ou o uso da tag `:latest`), falhando automaticamente caso a política seja violada.
+
+- **Inventário de Componentes (Syft):** Criação automatizada do SBOM em formato CycloneDX, mapeando todos os pacotes e dependências presentes na aplicação e na imagem Docker gerada.
+
+- **Varredura de Vulnerabilidades (Trivy + jq Gate):** Análise aprofundada do SBOM cruzando dados com bases de CVEs, configurada com *quality gates* estritos para barrar o build caso sejam detetadas falhas de severidade `HIGH` ou `CRITICAL`.
+
+- **Integridade e Assinatura de Artefatos (Cosign):** Implementação de assinatura digital no modelo *keyless* via Sigstore do GitHub Actions. O artefato compilado (`artifact.tar`) é assinado após o build e validado antes de prosseguir para o deploy, garantindo que qualquer adulteração posterior seja imediatamente detectada e bloqueada.
